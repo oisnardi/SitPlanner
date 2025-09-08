@@ -439,7 +439,10 @@
       const hasGuests=table.guests && table.guests.length>0;
       const msg = hasGuests ? `La mesa ${table.name||table.number} tiene ${table.guests.length} invitado(s). Se devolverán a \"sin asignar\". ¿Eliminar?` : `¿Eliminar la mesa ${table.name||table.number}?`;
       if(!confirm(msg)) return;
-      for(const g of (table.guests||[])){ g.tableId=null; }
+      for(const g of (table.guests||[])){
+        const realGuest=this.guests.find(x=>x.id===g.id);
+        if(realGuest) realGuest.tableId=null;
+      }
       this.tables=this.tables.filter(t=>t.id!==tableId);
       this.tables.forEach((t,i)=>t.number=i+1);
       this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave();
