@@ -8,6 +8,7 @@ Importa tus invitados desde un archivo **CSV**, asignalos a mesas con **drag & d
 ## ✨ Características
 
 - 📥 **Importar CSV** con los campos: `name`, `group`, `notes`, `email`, `phone`, `company`.
+- ➕ **Agregar invitados manualmente** y eliminarlos de la lista.
 - 🪑 **Mesas personalizables**: renombrar, ajustar capacidad y eliminar.
 - ↔️ **Drag & Drop intuitivo**:
   - Mueve invitados entre mesas.
@@ -29,25 +30,29 @@ Importa tus invitados desde un archivo **CSV**, asignalos a mesas con **drag & d
 1. **Abrir la aplicación**  
    Abre el archivo `index.html` (o `seating_planner.html`) en tu navegador.
 
-2. **Importar invitados**  
-   - Pulsa **"Elegir archivo CSV"**.  
-   - El archivo debe contener al menos una columna `name`.  
+2. **Importar invitados**
+   - Pulsa **"Elegir archivo CSV"**.
+   - El archivo debe contener al menos una columna `name`.
    - Campos opcionales: `group`, `notes`, `email`, `phone`, `company`.
 
-3. **Crear mesas**  
-   - Define cantidad y capacidad por defecto.  
+3. **Agregar invitados manualmente**
+   - Completa el nombre y, opcionalmente, el grupo.
+   - Pulsa **"Agregar"** para incorporarlo a la lista.
+
+4. **Crear mesas**
+   - Define cantidad y capacidad por defecto.
    - Pulsa **"Crear mesas"**.
 
-4. **Organizar invitados**  
-   - Arrastra desde el panel de invitados sin asignar hacia la mesa deseada.  
-   - Usa el handle **⋮⋮** para mover invitados o reordenar mesas.  
-   - Haz doble click en el **nombre** de la mesa para renombrarla.  
-   - Haz doble click en el **contador** para editar capacidad.  
+5. **Organizar invitados**
+   - Arrastra desde el panel de invitados sin asignar hacia la mesa deseada.
+   - Usa el handle **⋮⋮** para mover invitados o reordenar mesas.
+   - Haz doble click en el **nombre** de la mesa para renombrarla.
+   - Haz doble click en el **contador** para editar capacidad.
    - Usa 🗑️ para eliminar una mesa (los invitados regresan al panel de sin asignar).
 
-5. **Guardar / Exportar**  
-   - **Guardar JSON** para volver a cargar el plan más tarde.  
-   - **Exportar CSV** con todas las asignaciones.  
+6. **Guardar / Exportar**
+   - **Guardar JSON** para volver a cargar el plan más tarde.
+   - **Exportar CSV** con todas las asignaciones.
    - **Vista para imprimir** para obtener una versión amigable en papel.
 
 ---

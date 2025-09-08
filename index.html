@@ -42,7 +42,7 @@
     .guest-panel h3{text-align:center;color:#4a5568;margin:6px 0 10px}
     .statline{display:flex;justify-content:space-between;color:var(--muted);font-size:12px;margin:6px 0 12px}
 
-    .guest-item{background:linear-gradient(135deg,#f7fafc,#edf2f7);border:2px solid #e2e8f0;border-radius:12px;padding:10px;margin-bottom:10px;cursor:grab;user-select:none}
+    .guest-item{background:linear-gradient(135deg,#f7fafc,#edf2f7);border:2px solid #e2e8f0;border-radius:12px;padding:10px;margin-bottom:10px;cursor:grab;user-select:none;display:flex;align-items:center;justify-content:space-between;gap:8px}
     .guest-item.dragging{opacity:.6;transform:rotate(3deg)}
     .guest-drop{outline:2px dashed #90cdf4; outline-offset:-6px; background:#ebf8ff}
     .badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#edf2f7;border:1px solid #e2e8f0;color:#4a5568;margin-left:6px}
@@ -104,7 +104,14 @@
         </div>
 
         <div class="card">
-          <h3>2- Mesas</h3>
+          <h3>2- Agregar invitado</h3>
+          <input class="input" id="newGuestName" placeholder="Nombre" />
+          <input class="input" id="newGuestGroup" placeholder="Grupo (opcional)" style="margin-top:8px" />
+          <button class="btn primary" id="addGuestBtn">Agregar</button>
+        </div>
+
+        <div class="card">
+          <h3>3- Mesas</h3>
           <div class="row">
             <input class="input" type="number" id="tableCount" min="1" max="100" value="5" title="Cantidad a crear" />
           </div>
@@ -115,20 +122,20 @@
         </div>
 
         <div class="card">
-          <h3>Guardar/Cargar</h3>
+          <h3>4- Guardar/Cargar</h3>
           <button class="btn primary" id="saveBtn" title="Descarga JSON">Guardar</button>
           <button class="btn warn" id="loadBtn">Cargar JSON</button>
           <button class="btn neutral" id="clearLocalBtn">Borrar autosave</button>
         </div>
 
         <div class="card">
-          <h3>Exportar</h3>
+          <h3>5- Exportar</h3>
           <button class="btn info" id="exportCsvBtn">Exportar asignaciones (CSV)</button>
           <button class="btn neutral" id="printBtn">Vista para imprimir</button>
         </div>
 
         <div class="card">
-          <h3>Ayuda</h3>
+          <h3>6- Ayuda</h3>
           <div style="font-size:12px;color:var(--muted)">
             <div>• Arrastrá para asignar y usá <b>⋮⋮</b> como handle para mover entre mesas.</div>
             <div>• Doble click en el <em>contador</em> para editar capacidad.</div>
@@ -184,6 +191,9 @@
 
     cacheDom(){
       this.csvInput=el('#csvFile');
+      this.newGuestName=el('#newGuestName');
+      this.newGuestGroup=el('#newGuestGroup');
+      this.addGuestBtn=el('#addGuestBtn');
       this.searchInput=el('#searchInput');
       this.tableCount=el('#tableCount');
       this.defaultCapInput=el('#defaultCap');
@@ -206,6 +216,14 @@
       window.addEventListener('resize',()=>this.measureHeader());
       document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); this.saveArrangement(); } });
       this.csvInput.addEventListener('change', e=>this.handleCSV(e));
+      this.addGuestBtn.addEventListener('click',()=>{
+        const name=this.newGuestName.value.trim();
+        const group=this.newGuestGroup.value.trim();
+        if(!name){ alert('Nombre requerido'); return; }
+        this.addGuest({name, group});
+        this.newGuestName.value='';
+        this.newGuestGroup.value='';
+      });
       this.searchInput.addEventListener('input', ()=>{ this.renderGuests(); });
       this.defaultCapInput.addEventListener('change',()=>{ const v=parseInt(this.defaultCapInput.value)||11; this.defaultCap=v; this.renderTables(); });
       this.addTablesBtn.addEventListener('click',()=>{ const n=parseInt(this.tableCount.value)||1; this.createTables(n,this.defaultCap); });
@@ -242,6 +260,24 @@
           alert(`Importados ${this.guests.length} invitados.`);
         }, error: (err)=>alert('Error al leer CSV: '+err.message)
       })
+    }
+
+    // --- Invitados manuales ---
+    addGuest({name, group='', notes='', email='', phone='', company=''}={}){
+      if(!name) return;
+      const guest={id:`g-${uid()}`, name:String(name).trim(), group:String(group).trim(), notes:String(notes).trim(), email:email||'', phone:phone||'', company:company||'', tableId:null};
+      const exists=this.guests.some(g=> (g.name+'|'+(g.email||'')).toLowerCase()===(guest.name+'|'+(guest.email||'')).toLowerCase());
+      if(exists){ alert('Invitado ya existe'); return; }
+      this.guests.push(guest);
+      this.rebuildGroupPills(); this.renderGuests(); this.updateStats(); this.autosave();
+    }
+
+    removeGuest(guestId){
+      const idx=this.guests.findIndex(g=>g.id===guestId); if(idx<0) return;
+      const g=this.guests[idx];
+      if(g.tableId){ const t=this.tables.find(t=>t.id===g.tableId); if(t){ t.guests=t.guests.filter(x=>x.id!==g.id); } }
+      this.guests.splice(idx,1);
+      this.rebuildGroupPills(); this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave();
     }
 
     // --- Mesas ---
@@ -288,7 +324,11 @@
       for(const g of list){
         const mesa = g.tableId ? (this.tables.find(t=>t.id===g.tableId)?.name || '') : '';
         const item=document.createElement('div'); item.className='guest-item'; item.draggable=true; item.dataset.guestId=g.id;
-        item.innerHTML=`<div><strong>${g.name}</strong>${g.group?`<span class=\"badge\">${g.group}</span>`:''}${mesa?`<span class=\"badge\" style=\"background:#c6f6d5;border-color:#9ae6b4;color:#22543d\">${mesa}</span>`:''}</div>` + (g.notes?`<div class=\"badge\" title=\"Notas\">${g.notes}</div>`:'');
+        const main=document.createElement('div'); main.innerHTML=`<strong>${g.name}</strong>${g.group?`<span class="badge">${g.group}</span>`:''}${mesa?`<span class="badge" style="background:#c6f6d5;border-color:#9ae6b4;color:#22543d">${mesa}</span>`:''}`;
+        item.appendChild(main);
+        if(g.notes){ const note=document.createElement('div'); note.className='badge'; note.title='Notas'; note.textContent=g.notes; item.appendChild(note); }
+        const btn=document.createElement('button'); btn.className='remove'; btn.textContent='×'; btn.title='Eliminar'; btn.addEventListener('click',e=>{ e.stopPropagation(); this.removeGuest(g.id); });
+        item.appendChild(btn);
         item.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',g.id); e.dataTransfer.setData('application/x-guest', g.id); item.classList.add('dragging');});
         item.addEventListener('dragend',()=>item.classList.remove('dragging'));
         item.addEventListener('touchstart',()=>{this.touchDrag={id:g.id,el:item}; item.classList.add('dragging');});
