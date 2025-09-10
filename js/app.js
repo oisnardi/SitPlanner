@@ -113,6 +113,8 @@ class SeatingPlanner{
     this.openGuestModalBtn.addEventListener('click',()=>this.openGuestModal());
     this.guestModalSave.addEventListener('click',()=>this.saveGuestFromModal());
     this.guestModalCancel.addEventListener('click',()=>this.closeGuestModal());
+    this.guestModal.addEventListener('click',e=>{ if(e.target===this.guestModal) this.closeGuestModal(); });
+    document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !this.guestModal.hasAttribute('hidden')) this.closeGuestModal(); });
     this.searchInput.addEventListener('input', ()=>{ this.renderGuests(); });
     this.defaultCapInput.addEventListener('change',()=>{ const v=parseInt(this.defaultCapInput.value)||11; this.defaultCap=v; this.renderTables(); });
     this.addTablesBtn.addEventListener('click',()=>{ const n=parseInt(this.tableCount.value)||1; this.createTables(n,this.defaultCap); });
@@ -133,12 +135,12 @@ class SeatingPlanner{
     this.guestModalTitle.textContent = guest ? 'Editar invitado' : 'Agregar invitado';
     this.guestModalName.value = guest ? guest.name : '';
     this.guestModalGroup.value = guest ? (guest.group||'') : '';
-    this.guestModal.hidden=false;
+    this.guestModal.removeAttribute('hidden');
     this.guestModalName.focus();
   }
 
   closeGuestModal(){
-    this.guestModal.hidden=true;
+    this.guestModal.setAttribute('hidden','');
     this.editingGuest=null;
     this.guestModalName.value='';
     this.guestModalGroup.value='';
