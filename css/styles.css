@@ -72,6 +72,10 @@ input[type="file"].hidden{position:absolute;left:-9999px}
 .pill{cursor:pointer;padding:6px 10px;border-radius:999px;border:1px solid #cbd5e0;background:#fff;font-size:12px}
 .pill.active{background:#ebf8ff;border-color:#90cdf4}
 
+.overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:100}
+.dialog{background:var(--panel);border-radius:14px;padding:20px;max-width:400px;width:90%;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+.dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+
 @media (max-width: 900px){
   .layout{grid-template-columns:1fr;margin:0}
   .guest-panel{position:relative;top:auto;height:auto}
