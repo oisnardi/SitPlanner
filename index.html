@@ -24,10 +24,8 @@
         </div>
 
         <div class="card">
-          <h3>2- Agregar invitado</h3>
-          <input class="input" id="newGuestName" placeholder="Nombre" />
-          <input class="input" id="newGuestGroup" placeholder="Grupo (opcional)" style="margin-top:8px" />
-          <button class="btn primary" id="addGuestBtn">Agregar</button>
+          <h3>2- Invitados</h3>
+          <button class="btn primary" id="openGuestModalBtn">Agregar invitado</button>
         </div>
 
         <div class="card">
@@ -87,6 +85,28 @@
         <div class="grid" id="tablesGrid"></div>
       </section>
     </main>
+  </div>
+  
+  <!-- Dialog for alerts/prompts/confirmations -->
+  <div class="overlay" id="dialogOverlay" hidden>
+    <div class="dialog">
+      <div id="dialogMessage"></div>
+      <input class="input" id="dialogInput" style="margin-top:12px" hidden />
+      <div class="dialog-actions" id="dialogActions"></div>
+    </div>
+  </div>
+
+  <!-- Modal for adding/editing guests -->
+  <div class="overlay" id="guestModal" hidden>
+    <div class="dialog">
+      <h3 id="guestModalTitle">Invitado</h3>
+      <input class="input" id="guestModalName" placeholder="Nombre" />
+      <input class="input" id="guestModalGroup" placeholder="Grupo (opcional)" style="margin-top:8px" />
+      <div class="dialog-actions">
+        <button class="btn primary" id="guestModalSave">Guardar</button>
+        <button class="btn neutral" id="guestModalCancel">Cancelar</button>
+      </div>
+    </div>
   </div>
 
   <script src="js/app.js"></script>
