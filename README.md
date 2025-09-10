@@ -1,105 +1,84 @@
-# 🎉 Event Seating Planner
+# 🪑 SitPlanner - Planificador de Mesas para Eventos
 
-Una **WebApp interactiva** para organizadores de eventos que permite **gestionar invitados y mesas** de manera visual, rápida y sencilla.  
-Importa tus invitados desde un archivo **CSV**, asignalos a mesas con **drag & drop**, personaliza nombres y capacidades de mesas, y exporta el plan final en **CSV o JSON** listo para compartir o imprimir.
+SitPlanner es una aplicación web ligera y completamente del lado del cliente que facilita la organización de invitados y mesas para cualquier tipo de evento. Importa listas desde CSV, distribuye invitados mediante drag & drop y exporta el esquema final para compartirlo o imprimirlo.
 
----
+## Índice
+- [Características](#características)
+- [Requisitos](#requisitos)
+- [Instalación](#instalación)
+- [Uso](#uso)
+- [Estructura del proyecto](#estructura-del-proyecto)
+- [Tecnologías](#tecnologías)
+- [Contribuir](#contribuir)
+- [Licencia](#licencia)
+- [Autor](#autor)
 
-## ✨ Características
+## Características
+- Importación de invitados desde archivos CSV con campos: `name`, `group`, `notes`, `email`, `phone`, `company`.
+- Creación y personalización de mesas: renombrar, definir capacidad y eliminar.
+- Asignación de invitados mediante drag & drop intuitivo.
+- Buscador por nombre, grupo o mesa asignada.
+- Filtros rápidos por grupo.
+- Guardado y carga de estados en JSON.
+- Exportación del plan final a CSV.
+- Vista de impresión optimizada.
+- Autosave en `localStorage`.
+- Diseño responsivo para escritorio, tablet y móvil.
 
-- 📥 **Importar CSV** con los campos: `name`, `group`, `notes`, `email`, `phone`, `company`.
-- ➕ **Agregar invitados manualmente** y eliminarlos de la lista.
-- 🪑 **Mesas personalizables**: renombrar, ajustar capacidad y eliminar.
-- ↔️ **Drag & Drop intuitivo**:
-  - Mueve invitados entre mesas.
-  - Reordena mesas con el handle `⋮⋮`.
-- 🔍 **Buscador avanzado**:
-  - Encuentra invitados por nombre, grupo o mesa asignada.
-  - Muestra badge con la mesa donde está sentado.
-- 🏷️ **Filtros por grupo**: genera "píldoras" para filtrar invitados rápidamente.
-- 💾 **Guardar / Cargar**: exporta e importa el estado en JSON.
-- 📊 **Exportar CSV** con asignaciones (para usar en Excel/Google Sheets).
-- 🖨️ **Vista de impresión** optimizada.
-- 💡 **Autosave en localStorage**: nunca pierdes tu trabajo.
-- 📱 **Diseño responsive**: funciona en desktop, tablet y móvil.
+## Requisitos
+Solo se necesita un navegador moderno (Chrome, Firefox, Edge, Safari). El proyecto funciona de forma local sin servidores ni dependencias externas.
 
----
+## Instalación
+1. Clona o descarga este repositorio.
+2. Abre `index.html` en tu navegador.
+   También puedes servir la carpeta con cualquier servidor web estático.
+3. (Opcional) Utiliza el archivo de ejemplo `Examples/invitados_demo.csv` para probar la importación.
 
-## 🚀 Uso
-
-1. **Abrir la aplicación**  
-   Abre el archivo `index.html` (o `seating_planner.html`) en tu navegador.
-
-2. **Importar invitados**
-   - Pulsa **"Elegir archivo CSV"**.
-   - El archivo debe contener al menos una columna `name`.
-   - Campos opcionales: `group`, `notes`, `email`, `phone`, `company`.
-
-3. **Agregar invitados manualmente**
-   - Completa el nombre y, opcionalmente, el grupo.
+## Uso
+1. **Importar invitados**
+   - Haz clic en **"Elegir archivo CSV"** y selecciona tu listado.
+   - El campo `name` es obligatorio; los demás son opcionales.
+2. **Agregar invitados manualmente**
+   - Completa el nombre y, si quieres, el grupo.
    - Pulsa **"Agregar"** para incorporarlo a la lista.
+3. **Crear mesas**
+   - Indica la cantidad de mesas y una capacidad por defecto.
+   - Presiona **"Crear mesas"**.
+4. **Organizar invitados**
+   - Arrastra cada invitado a la mesa deseada.
+   - Usa el manejador `⋮⋮` para mover invitados o reordenar mesas.
+   - Doble clic sobre el nombre de la mesa para renombrarla.
+   - Doble clic sobre el contador para editar la capacidad.
+5. **Guardar y exportar**
+   - Guarda el estado en JSON para retomarlo después.
+   - Exporta un CSV con todas las asignaciones.
+   - Utiliza la vista de impresión para obtener una versión en papel.
 
-4. **Crear mesas**
-   - Define cantidad y capacidad por defecto.
-   - Pulsa **"Crear mesas"**.
+## Estructura del proyecto
+```
+SitPlanner/
+├── index.html
+├── css/
+│   └── styles.css
+├── js/
+│   └── app.js
+├── Examples/
+│   └── invitados_demo.csv
+└── README.md
+```
 
-5. **Organizar invitados**
-   - Arrastra desde el panel de invitados sin asignar hacia la mesa deseada.
-   - Usa el handle **⋮⋮** para mover invitados o reordenar mesas.
-   - Haz doble click en el **nombre** de la mesa para renombrarla.
-   - Haz doble click en el **contador** para editar capacidad.
-   - Usa 🗑️ para eliminar una mesa (los invitados regresan al panel de sin asignar).
+## Tecnologías
+- HTML5 y CSS3
+- JavaScript (ES6)
+- [PapaParse](https://www.papaparse.com/) para lectura de CSV
+- LocalStorage API para persistencia
 
-6. **Guardar / Exportar**
-   - **Guardar JSON** para volver a cargar el plan más tarde.
-   - **Exportar CSV** con todas las asignaciones.
-   - **Vista para imprimir** para obtener una versión amigable en papel.
+## Contribuir
+¿Tienes ideas o encontraste un problema? Abre un *issue* o envía un *pull request*. Toda ayuda es bienvenida.
 
----
+## Licencia
+Este proyecto se distribuye bajo la licencia **MIT**. Puedes usarlo y adaptarlo libremente.
 
-## 📂 Estructura del Proyecto
-📁 Event-Seating-Planner
-├── index.html # Archivo principal con HTML, CSS y JS integrados
-├── README.md # Este archivo
-└── assets/ # (Opcional) imágenes, iconos o estilos adicionales
-
-
----
-
-## 📸 Capturas de pantalla
-
-*(Agrega aquí imágenes o gifs mostrando el drag & drop y la interfaz de mesas)*
-
----
-
-## ⚙️ Tecnologías usadas
-
-- **HTML5 + CSS3** (con gradientes y estilos modernos).
-- **JavaScript puro (ES6)** para lógica y drag & drop.
-- **PapaParse** para la importación de CSV.
-- **LocalStorage API** para autosave.
-
----
-
-## 🧩 Ideas futuras
-
-- 🔗 Integración con **Google Sheets** para importar invitados en línea.  
-- 🗂️ Posibilidad de agrupar mesas por sectores (ej: salón, terraza, VIP).  
-- 📱 Aplicación móvil con **capacidades offline**.  
-- 🔔 Notificaciones para cambios de última hora.  
-- 👥 Multiusuario para organizar en equipo.
-
----
-
-## 📄 Licencia
-
-Este proyecto está publicado bajo la licencia **MIT**.  
-Eres libre de usarlo, modificarlo y adaptarlo a tus necesidades.  
-
----
-
-## 👤 Autor
-
-Creado por **Alejandro Isnardi** (2025).  
-🚀 Arquitecto Cloud & Data | Chief Data Officer | Desarrollador Web Hands-on  
-
+## Autor
+Creado por **Alejandro Isnardi** (2025).
+🚀 Arquitecto Cloud & Data | Chief Data Officer | Desarrollador Web Hands-on
