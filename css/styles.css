@@ -3,7 +3,8 @@
 body{min-height:100vh;font:16px/1.4 "Segoe UI",system-ui,-apple-system,sans-serif;background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ink)}
 .container{max-width:1450px;margin:0 auto;padding:20px}
 .toggle-container{margin-bottom:12px;text-align:right;position:sticky;top:10px;z-index:20}
-.toggle-btn{border:0;background:linear-gradient(135deg,#a0aec0,#718096);color:#fff;padding:10px 20px;border-radius:8px;cursor:pointer;min-height:44px;touch-action:manipulation}
+.toggle-btn{border:0;background:linear-gradient(135deg,#a0aec0,#718096);color:#fff;padding:10px 20px;border-radius:8px;cursor:pointer;min-height:44px;touch-action:manipulation;display:flex;align-items:center;gap:6px}
+.toggle-btn .icon{font-size:14px}
 
 .header{position:sticky;top:0;z-index:10;background:var(--panel);backdrop-filter:blur(10px);border-radius:20px;padding:20px 24px;margin-bottom:20px;box-shadow:0 10px 40px rgba(0,0,0,.08);overflow:hidden;transition:max-height .3s ease,padding .3s ease,margin .3s ease}
 .header h1{font-size:28px;color:#4a5568;margin-bottom:4px}
