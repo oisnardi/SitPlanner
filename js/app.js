@@ -2,6 +2,7 @@
 const uid = () => Math.random().toString(36).slice(2,9);
 const el = (sel,root=document)=>root.querySelector(sel);
 const els = (sel,root=document)=>[...root.querySelectorAll(sel)];
+const norm = s => (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 
 const Dialog={
   init(){
@@ -231,20 +232,17 @@ class SeatingPlanner{
 
   // --- Render invitados (muestra mesa al buscar) ---
   renderGuests(){
-    const term = this.searchInput.value.trim().toLowerCase();
-    let list = [];
-    if(term){
-      list = this.guests.filter(g=> {
-        const mesa = g.tableId ? (this.tables.find(t=>t.id===g.tableId)?.name||'') : '';
-        return (
-          g.name.toLowerCase().includes(term) ||
-          (g.group||'').toLowerCase().includes(term) ||
-          mesa.toLowerCase().includes(term)
-        );
-      });
-    } else {
-      list = this.guests.filter(g=>!g.tableId);
-    }
+    const term = norm(this.searchInput.value.trim());
+    const searching = term.length > 0;
+    const list = this.guests.filter(g=> {
+      if(!searching) return !g.tableId;
+      const mesa = g.tableId ? (this.tables.find(t=>t.id===g.tableId)?.name||'') : '';
+      return (
+        norm(g.name).includes(term) ||
+        norm(g.group).includes(term) ||
+        norm(mesa).includes(term)
+      );
+    });
 
     this.guestList.innerHTML = list.length? '' : `<div class="empty">${term? 'Sin coincidencias' : 'Sin invitados sin asignar'}</div>`;
     for(const g of list){
