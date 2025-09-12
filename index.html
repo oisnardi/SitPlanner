@@ -10,7 +10,12 @@
 </head>
 <body>
   <div class="container" id="mainContainer">
-    <div class="toggle-container"><button class="toggle-btn" id="toggleBtn">Colapsar / Expandir Header</button></div>
+    <div class="toggle-container">
+      <button class="toggle-btn" id="toggleBtn" aria-expanded="true" aria-controls="appHeader">
+        <span class="icon" aria-hidden="true">▲</span>
+        <span class="label">Ocultar encabezado</span>
+      </button>
+    </div>
     <header class="header" id="appHeader">
       <h1>Event Seating Planner</h1>
       <p>Importá tu CSV, buscá por nombre/etiqueta y arrastrá cada invitado a su mesa. Capacidad por mesa configurable.</p>

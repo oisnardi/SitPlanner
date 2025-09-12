@@ -77,6 +77,7 @@ class SeatingPlanner{
     this.bindEvents();
     this.restoreAutosave();
     this.measureHeader();
+    this.updateToggleBtn();
     if(this.tables.length===0){ this.createTables(5,this.defaultCap); } else { this.renderGuests(); this.renderTables(); this.updateStats(); }
   }
 
@@ -102,12 +103,14 @@ class SeatingPlanner{
     this.tablesGrid=el('#tablesGrid');
     this.groupPills=el('#groupPills');
     this.toggleBtn=el('#toggleBtn');
+    this.toggleIcon=el('.icon',this.toggleBtn);
+    this.toggleLabel=el('.label',this.toggleBtn);
     this.header=el('#appHeader');
     this.stats={ unassigned:el('#unassignedCount'), total:el('#totalCount'), assigned:el('#assignedGuests'), tables:el('#totalTables') };
   }
 
   bindEvents(){
-    this.toggleBtn.addEventListener('click',()=>{ this.header.classList.toggle('collapsed'); this.measureHeader(); });
+    this.toggleBtn.addEventListener('click',()=>{ this.header.classList.toggle('collapsed'); this.measureHeader(); this.updateToggleBtn(); });
     window.addEventListener('resize',()=>this.measureHeader());
     document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); this.saveArrangement(); } });
     this.csvInput.addEventListener('change', e=>this.handleCSV(e));
@@ -166,6 +169,13 @@ class SeatingPlanner{
   measureHeader(){
     const h = el('#appHeader').getBoundingClientRect().height;
     document.documentElement.style.setProperty('--headerH', `${Math.round(h)}px`);
+  }
+
+  updateToggleBtn(){
+    const collapsed=this.header.classList.contains('collapsed');
+    this.toggleBtn.setAttribute('aria-expanded',(!collapsed).toString());
+    this.toggleIcon.textContent=collapsed?'▼':'▲';
+    this.toggleLabel.textContent=collapsed?'Mostrar encabezado':'Ocultar encabezado';
   }
 
   // --- CSV ---
