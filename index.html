@@ -25,7 +25,7 @@
           <h3>1- Importar invitados (CSV)</h3>
           <input type="file" id="csvFile" class="hidden" accept=".csv" />
           <label class="file-label" for="csvFile">Elegir archivo CSV</label>
-          <small style="display:block;color:var(--muted);margin-top:8px">Campos: <b>name</b>, group, notes, email, phone, company</small>
+          <small class="hint">Campos: <b>name</b>, group, notes, email, phone, company</small>
         </div>
 
         <div class="card">
@@ -38,7 +38,7 @@
           <div class="row">
             <input class="input" type="number" id="tableCount" min="1" max="100" value="5" title="Cantidad a crear" />
           </div>
-          <div class="row" style="margin-top:8px">
+          <div class="row">
             <input class="input" type="number" id="defaultCap" min="1" max="30" value="11" title="Capacidad por mesa" />
           </div>
           <button class="btn primary" id="addTablesBtn">Crear mesas</button>
@@ -59,7 +59,7 @@
 
         <div class="card">
           <h3>6- Ayuda</h3>
-          <div style="font-size:12px;color:var(--muted)">
+          <div class="help-text">
             <div>• Arrastrá para asignar y usá <b>⋮⋮</b> como handle para mover entre mesas.</div>
             <div>• Doble click en el <em>contador</em> para editar capacidad.</div>
             <div>• Doble click en el <em>título</em> (o ✏️) para renombrar la mesa.</div>
@@ -72,7 +72,7 @@
 
     <main class="layout">
       <aside class="guest-panel">
-        <input class="input" id="searchInput" placeholder="Buscar invitados..." style="margin-bottom:12px" />
+        <input class="input" id="searchInput" placeholder="Buscar invitados..." />
         <h3>Invitados</h3>
         <div class="statline"><span id="unassignedCount">0 sin asignar</span><span id="totalCount">0 total</span></div>
         <div class="pillbar" id="groupPills"></div>
@@ -96,7 +96,7 @@
   <div class="overlay" id="dialogOverlay" hidden>
     <div class="dialog">
       <div id="dialogMessage"></div>
-      <input class="input" id="dialogInput" style="margin-top:12px" hidden />
+      <input class="input" id="dialogInput" hidden />
       <div class="dialog-actions" id="dialogActions"></div>
     </div>
   </div>
@@ -106,7 +106,7 @@
     <div class="dialog">
       <h3 id="guestModalTitle">Invitado</h3>
       <input class="input" id="guestModalName" placeholder="Nombre" />
-      <input class="input" id="guestModalGroup" placeholder="Grupo (opcional)" style="margin-top:8px" />
+      <input class="input" id="guestModalGroup" placeholder="Grupo (opcional)" />
       <div class="dialog-actions">
         <button class="btn primary" id="guestModalSave">Guardar</button>
         <button class="btn neutral" id="guestModalCancel">Cancelar</button>

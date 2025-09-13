@@ -73,6 +73,13 @@ SitPlanner/
 - [PapaParse](https://www.papaparse.com/) para lectura de CSV
 - LocalStorage API para persistencia
 
+## Guía de estilo
+- Utilizar nombres en `camelCase` para variables y funciones.
+- Mantener los identificadores en inglés de forma consistente.
+- Crear funciones pequeñas con una única responsabilidad.
+- Evitar estilos inline; definir estilos en archivos CSS.
+- Reemplazar números mágicos por constantes descriptivas.
+
 ## Contribuir
 ¿Tienes ideas o encontraste un problema? Abre un *issue* o envía un *pull request*. Toda ayuda es bienvenida.
 
