@@ -4,6 +4,10 @@ const el = (sel,root=document)=>root.querySelector(sel);
 const els = (sel,root=document)=>[...root.querySelectorAll(sel)];
 const norm = s => (s||'').toString().normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
 
+// --- Constantes ---
+const DEFAULT_CAPACITY = 11;
+const TOUCH_DRAG_DELAY = 200;
+
 const Dialog={
   init(){
     this.overlay=el('#dialogOverlay');
@@ -70,7 +74,7 @@ class SeatingPlanner{
   constructor(){
     this.guests=[]; // {id,name,group,notes,email,phone,company,tableId}
     this.tables=[]; // {id,number,name,cap,guests:[]}
-    this.defaultCap=11;
+    this.defaultCap=DEFAULT_CAPACITY;
     this.touchDrag=null;
 
     this.cacheDom();
@@ -120,7 +124,7 @@ class SeatingPlanner{
     this.guestModal.addEventListener('click',e=>{ if(e.target===this.guestModal) this.closeGuestModal(); });
     document.addEventListener('keydown',e=>{ if(e.key==='Escape' && !this.guestModal.hasAttribute('hidden')) this.closeGuestModal(); });
     this.searchInput.addEventListener('input', ()=>{ this.renderGuests(); });
-    this.defaultCapInput.addEventListener('change',()=>{ const v=parseInt(this.defaultCapInput.value)||11; this.defaultCap=v; this.renderTables(); });
+    this.defaultCapInput.addEventListener('change',()=>{ const v=parseInt(this.defaultCapInput.value)||DEFAULT_CAPACITY; this.defaultCap=v; this.renderTables(); });
     this.addTablesBtn.addEventListener('click',()=>{ const n=parseInt(this.tableCount.value)||1; this.createTables(n,this.defaultCap); });
     this.saveBtn.addEventListener('click',()=>this.saveArrangement());
     this.loadBtn.addEventListener('click',()=>this.loadArrangement());
@@ -159,7 +163,7 @@ class SeatingPlanner{
       if(exists){ Dialog.alert('Invitado ya existe'); return; }
       this.editingGuest.name=name;
       this.editingGuest.group=group;
-      this.rebuildGroupPills(); this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave();
+      this.rebuildGroupPills(); this.refresh();
     }else{
       this.addGuest({name, group});
     }
@@ -190,7 +194,7 @@ class SeatingPlanner{
         }).filter(g=>g.name);
         const seen=new Set();
         this.guests = guests.filter(g=>{ const k=(g.name+'|'+(g.email||'')).toLowerCase(); if(seen.has(k)) return false; seen.add(k); return true; });
-        this.rebuildGroupPills(); this.renderGuests(); this.updateStats(); this.autosave();
+        this.rebuildGroupPills(); this.refresh();
         Dialog.alert(`Importados ${this.guests.length} invitados.`);
       }, error: (err)=>Dialog.alert('Error al leer CSV: '+err.message)
     })
@@ -203,7 +207,7 @@ class SeatingPlanner{
     const exists=this.guests.some(g=> (g.name+'|'+(g.email||'')).toLowerCase()===(guest.name+'|'+(guest.email||'')).toLowerCase());
     if(exists){ Dialog.alert('Invitado ya existe'); return; }
     this.guests.push(guest);
-    this.rebuildGroupPills(); this.renderGuests(); this.updateStats(); this.autosave();
+    this.rebuildGroupPills(); this.refresh();
   }
 
   async removeGuest(guestId){
@@ -214,7 +218,7 @@ class SeatingPlanner{
     if(!ok) return;
     if(g.tableId){ const t=this.tables.find(t=>t.id===g.tableId); if(t){ t.guests=t.guests.filter(x=>x.id!==g.id); } }
     this.guests.splice(idx,1);
-    this.rebuildGroupPills(); this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave();
+    this.rebuildGroupPills(); this.refresh();
   }
 
   // --- Mesas ---
@@ -223,7 +227,7 @@ class SeatingPlanner{
     for(let i=0;i<n;i++){
       this.tables.push({id:`t-${uid()}` ,number:start+i, name:`Mesa ${start+i}`, cap, guests:[]});
     }
-    this.renderTables(); this.updateStats(); this.autosave();
+    this.refresh();
   }
 
   async editCapacity(table){
@@ -242,54 +246,69 @@ class SeatingPlanner{
 
   // --- Render invitados (muestra mesa al buscar) ---
   renderGuests(){
-    const term = norm(this.searchInput.value.trim());
-    const searching = term.length > 0;
-    const list = this.guests.filter(g=> {
-      if(!searching) return !g.tableId;
-      const mesa = g.tableId ? (this.tables.find(t=>t.id===g.tableId)?.name||'') : '';
-      return (
-        norm(g.name).includes(term) ||
-        norm(g.group).includes(term) ||
-        norm(mesa).includes(term)
+    const term=norm(this.searchInput.value.trim());
+    const searching=term.length>0;
+    const list=this.guests.filter(guest=>{
+      if(!searching) return !guest.tableId;
+      const tableName=guest.tableId ? (this.tables.find(t=>t.id===guest.tableId)?.name||'') : '';
+      return(
+        norm(guest.name).includes(term) ||
+        norm(guest.group).includes(term) ||
+        norm(tableName).includes(term)
       );
     });
 
-    this.guestList.innerHTML = list.length? '' : `<div class="empty">${term? 'Sin coincidencias' : 'Sin invitados sin asignar'}</div>`;
-    for(const g of list){
-      const mesa = g.tableId ? (this.tables.find(t=>t.id===g.tableId)?.name || '') : '';
-      const item=document.createElement('div'); item.className='guest-item'; item.draggable=true; item.dataset.guestId=g.id;
-      const main=document.createElement('div'); main.innerHTML=`<strong>${g.name}</strong>${g.group?`<span class="badge">${g.group}</span>`:''}${mesa?`<span class="badge" style="background:#c6f6d5;border-color:#9ae6b4;color:#22543d">${mesa}</span>`:''}`;
-      item.appendChild(main);
-      if(g.notes){ const note=document.createElement('div'); note.className='badge'; note.title='Notas'; note.textContent=g.notes; item.appendChild(note); }
-      const btn=document.createElement('button'); btn.className='remove'; btn.textContent='×'; btn.title='Eliminar'; btn.addEventListener('click',e=>{ e.stopPropagation(); this.removeGuest(g.id); });
-      item.appendChild(btn);
-      item.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',g.id); e.dataTransfer.setData('application/x-guest', g.id); item.classList.add('dragging');});
-      item.addEventListener('dragend',()=>item.classList.remove('dragging'));
-      item.addEventListener('dblclick',()=>this.openGuestModal(g));
-      let touchTimer;
-      const cancelTouch=()=>{
-        clearTimeout(touchTimer);
-        if(this.touchDrag && this.touchDrag.el===item){
-          this.touchDrag=null;
-          item.classList.remove('dragging');
-        }
-      };
-      item.addEventListener('touchstart',()=>{
-        touchTimer=setTimeout(()=>{
-          this.touchDrag={id:g.id,el:item};
-          item.classList.add('dragging');
-        },200);
-      },{passive:true});
-      item.addEventListener('touchmove',()=>{
-        if(!this.touchDrag) cancelTouch();
-      },{passive:true});
-      item.addEventListener('touchend',cancelTouch,{passive:true});
-      this.guestList.appendChild(item);
+    this.guestList.innerHTML = list.length ? '' : `<div class="empty">${term ? 'Sin coincidencias' : 'Sin invitados sin asignar'}</div>`;
+    for(const guest of list){
+      this.guestList.appendChild(this.createGuestElement(guest));
+    }
+  }
+
+  createGuestElement(guest){
+    const tableName = guest.tableId ? (this.tables.find(t=>t.id===guest.tableId)?.name || '') : '';
+    const item=document.createElement('div');
+    item.className='guest-item';
+    item.draggable=true;
+    item.dataset.guestId=guest.id;
+
+    const main=document.createElement('div');
+    const groupBadge=guest.group?`<span class="badge">${guest.group}</span>`:'';
+    const tableBadge=tableName?`<span class="badge table-badge">${tableName}</span>`:'';
+    main.innerHTML=`<strong>${guest.name}</strong>${groupBadge}${tableBadge}`;
+    item.appendChild(main);
+
+    if(guest.notes){
+      const note=document.createElement('div');
+      note.className='badge';
+      note.title='Notas';
+      note.textContent=guest.notes;
+      item.appendChild(note);
     }
 
-    const unassignedCount=this.guests.filter(g=>!g.tableId).length;
-    this.stats.unassigned.textContent = `${unassignedCount} sin asignar`;
-    this.stats.total.textContent = `${this.guests.length} total`;
+    const btn=document.createElement('button');
+    btn.className='remove';
+    btn.textContent='×';
+    btn.title='Eliminar';
+    btn.addEventListener('click',e=>{ e.stopPropagation(); this.removeGuest(guest.id); });
+    item.appendChild(btn);
+
+    item.addEventListener('dragstart',e=>{e.dataTransfer.setData('text/plain',guest.id); e.dataTransfer.setData('application/x-guest',guest.id); item.classList.add('dragging');});
+    item.addEventListener('dragend',()=>item.classList.remove('dragging'));
+    item.addEventListener('dblclick',()=>this.openGuestModal(guest));
+
+    let touchTimer;
+    const cancelTouch=()=>{
+      clearTimeout(touchTimer);
+      if(this.touchDrag && this.touchDrag.el===item){
+        this.touchDrag=null;
+        item.classList.remove('dragging');
+      }
+    };
+    item.addEventListener('touchstart',()=>{ touchTimer=setTimeout(()=>{ this.touchDrag={id:guest.id,el:item}; item.classList.add('dragging'); },TOUCH_DRAG_DELAY); },{passive:true});
+    item.addEventListener('touchmove',()=>{ if(!this.touchDrag) cancelTouch(); },{passive:true});
+    item.addEventListener('touchend',cancelTouch,{passive:true});
+
+    return item;
   }
 
   // --- Render mesas ---
@@ -335,11 +354,11 @@ class SeatingPlanner{
       const list=document.createElement('div');
       if(table.guests.length===0){ list.innerHTML='<div class="empty">Soltá invitados aquí</div>'; }
       else{
-        for(const g of table.guests){
-          const row=document.createElement('div');row.className='table-guest'; row.dataset.guestId=g.id; row.draggable=true;
-          const left=document.createElement('span'); left.innerHTML = `<span class=\"drag-handle\">⋮⋮</span>${g.name}${g.group?` <span class=\"chip\" title=\"Etiqueta\">${g.group}</span>`:''}`;
-          const btn=document.createElement('button');btn.className='remove';btn.textContent='×';btn.title='Quitar'; btn.addEventListener('click',()=>this.unassign(g.id, table.id));
-          row.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain', g.id); e.dataTransfer.setData('application/x-guest', g.id); row.classList.add('dragging'); });
+        for(const guest of table.guests){
+          const row=document.createElement('div');row.className='table-guest'; row.dataset.guestId=guest.id; row.draggable=true;
+          const left=document.createElement('span'); left.innerHTML = `<span class=\"drag-handle\">⋮⋮</span>${guest.name}${guest.group?` <span class=\"chip\" title=\"Etiqueta\">${guest.group}</span>`:''}`;
+          const btn=document.createElement('button');btn.className='remove';btn.textContent='×';btn.title='Quitar'; btn.addEventListener('click',()=>this.unassign(guest.id, table.id));
+          row.addEventListener('dragstart',e=>{ e.dataTransfer.setData('text/plain', guest.id); e.dataTransfer.setData('application/x-guest', guest.id); row.classList.add('dragging'); });
           row.addEventListener('dragend',()=>row.classList.remove('dragging'));
           row.append(left,btn); list.appendChild(row);
         }
@@ -347,8 +366,6 @@ class SeatingPlanner{
       card.append(head,list);
       this.tablesGrid.appendChild(card);
     }
-    this.stats.tables.textContent=`Mesas: ${this.tables.length}`;
-    this.updateStats();
   }
 
   // --- Reordenar mesas ---
@@ -364,24 +381,40 @@ class SeatingPlanner{
 
   // --- Asignación ---
   assign(guestId, tableId){
-    const g=this.guests.find(x=>x.id===guestId); const t=this.tables.find(x=>x.id===tableId);
-    if(!g||!t) return; if(t.guests.length>=t.cap){ Dialog.alert('¡Mesa completa!'); return; }
-    if(g.tableId){ const from=this.tables.find(x=>x.id===g.tableId); if(from){ from.guests=from.guests.filter(x=>x.id!==g.id); } }
-    g.tableId=tableId; t.guests.push(g);
-    this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave();
+    const guest=this.guests.find(x=>x.id===guestId);
+    const table=this.tables.find(x=>x.id===tableId);
+    if(!guest||!table) return;
+    if(table.guests.length>=table.cap){ Dialog.alert('¡Mesa completa!'); return; }
+    if(guest.tableId){
+      const from=this.tables.find(x=>x.id===guest.tableId);
+      if(from){ from.guests=from.guests.filter(x=>x.id!==guest.id); }
+    }
+    guest.tableId=tableId;
+    table.guests.push(guest);
+    this.refresh();
   }
 
   unassign(guestId, tableId){
-    const g=this.guests.find(x=>x.id===guestId); const t=this.tables.find(x=>x.id===tableId);
-    if(!g||!t) return; g.tableId=null; t.guests=t.guests.filter(x=>x.id!==guestId);
-    this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave();
+    const guest=this.guests.find(x=>x.id===guestId);
+    const table=this.tables.find(x=>x.id===tableId);
+    if(!guest||!table) return;
+    guest.tableId=null;
+    table.guests=table.guests.filter(x=>x.id!==guestId);
+    this.refresh();
   }
 
   unassignById(guestId){
-    const g=this.guests.find(x=>x.id===guestId); if(!g||!g.tableId) return;
-    const t=this.tables.find(x=>x.id===g.tableId); if(!t) { g.tableId=null; this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave(); return; }
-    g.tableId=null; t.guests=t.guests.filter(x=>x.id!==guestId);
-    this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave();
+    const guest=this.guests.find(x=>x.id===guestId);
+    if(!guest||!guest.tableId) return;
+    const table=this.tables.find(x=>x.id===guest.tableId);
+    if(!table){
+      guest.tableId=null;
+      this.refresh();
+      return;
+    }
+    guest.tableId=null;
+    table.guests=table.guests.filter(x=>x.id!==guestId);
+    this.refresh();
   }
 
   // --- Eliminar mesa ---
@@ -397,17 +430,32 @@ class SeatingPlanner{
     }
     this.tables=this.tables.filter(t=>t.id!==tableId);
     this.tables.forEach((t,i)=>t.number=i+1);
-    this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave();
+    this.refresh();
+  }
+
+  refresh(){
+    this.renderGuests();
+    this.renderTables();
+    this.updateStats();
+    this.autosave();
   }
 
   // --- Stats / autosave ---
-  updateStats(){ const assigned=this.guests.filter(g=>g.tableId).length; this.stats.assigned.textContent = `Asignados: ${assigned}`; }
+  updateStats(){
+    const unassigned=this.guests.filter(g=>!g.tableId).length;
+    const total=this.guests.length;
+    const assigned=total-unassigned;
+    this.stats.unassigned.textContent=`${unassigned} sin asignar`;
+    this.stats.total.textContent=`${total} total`;
+    this.stats.assigned.textContent=`Asignados: ${assigned}`;
+    this.stats.tables.textContent=`Mesas: ${this.tables.length}`;
+  }
 
   autosave(){ const data={guests:this.guests,tables:this.tables,defaultCap:this.defaultCap}; localStorage.setItem('seating_autosave', JSON.stringify(data)); }
 
   restoreAutosave(){
     const raw=localStorage.getItem('seating_autosave'); if(!raw) return;
-    try{ const d=JSON.parse(raw); if(!d) return; this.guests=d.guests||[]; this.tables=(d.tables||[]).map(t=>({name:t.name||t.name===""?t.name:`Mesa ${t.number||''}`,...t})); this.defaultCap=d.defaultCap||11;
+    try{ const d=JSON.parse(raw); if(!d) return; this.guests=d.guests||[]; this.tables=(d.tables||[]).map(t=>({name:t.name||t.name===""?t.name:`Mesa ${t.number||''}`,...t})); this.defaultCap=d.defaultCap||DEFAULT_CAPACITY;
       this.rebuildGroupPills(); this.renderGuests(); this.renderTables(); this.updateStats();
     }catch{}
   }
@@ -422,8 +470,8 @@ class SeatingPlanner{
     const input=document.createElement('input'); input.type='file'; input.accept='.json';
     input.onchange=(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{
       try{ const d=JSON.parse(ev.target.result);
-        this.guests=d.guests||[]; this.tables=(d.tables||[]).map(t=>({name:t.name||t.name===""?t.name:`Mesa ${t.number||''}`,...t})); this.defaultCap=d.defaultCap||11;
-        this.rebuildGroupPills(); this.renderGuests(); this.renderTables(); this.updateStats(); this.autosave();
+        this.guests=d.guests||[]; this.tables=(d.tables||[]).map(t=>({name:t.name||t.name===""?t.name:`Mesa ${t.number||''}`,...t})); this.defaultCap=d.defaultCap||DEFAULT_CAPACITY;
+        this.rebuildGroupPills(); this.refresh();
         Dialog.alert('¡Arreglo cargado!');
       }catch(err){ Dialog.alert('Archivo inválido: '+err.message); }
     }; r.readAsText(f); };
