@@ -23,7 +23,7 @@
       <section class="toolbar">
         <div class="card">
           <h3>1- Importar invitados (CSV)</h3>
-          <input type="file" id="csvFile" class="hidden" accept=".csv" />
+          <input type="file" id="csvFile" class="hidden" accept=".csv,text/csv" />
           <label class="file-label" for="csvFile">Elegir archivo CSV</label>
           <small class="hint">Campos: <b>name</b>, group, notes, email, phone, company</small>
         </div>
@@ -47,6 +47,7 @@
         <div class="card">
           <h3>4- Guardar/Cargar</h3>
           <button class="btn primary" id="saveBtn" title="Descarga JSON">Guardar</button>
+          <input type="file" id="jsonFile" class="hidden" accept=".json,application/json" />
           <button class="btn warn" id="loadBtn">Cargar JSON</button>
           <button class="btn neutral" id="clearLocalBtn">Borrar autosave</button>
         </div>
