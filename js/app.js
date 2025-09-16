@@ -87,6 +87,7 @@ class SeatingPlanner{
 
   cacheDom(){
     this.csvInput=el('#csvFile');
+    this.jsonInput=el('#jsonFile');
     this.openGuestModalBtn=el('#openGuestModalBtn');
     this.guestModal=el('#guestModal');
     this.guestModalTitle=el('#guestModalTitle');
@@ -118,6 +119,9 @@ class SeatingPlanner{
     window.addEventListener('resize',()=>this.measureHeader());
     document.addEventListener('keydown',e=>{ if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='s'){ e.preventDefault(); this.saveArrangement(); } });
     this.csvInput.addEventListener('change', e=>this.handleCSV(e));
+    if(this.jsonInput){
+      this.jsonInput.addEventListener('change', e=>this.handleJsonInput(e));
+    }
     this.openGuestModalBtn.addEventListener('click',()=>this.openGuestModal());
     this.guestModalSave.addEventListener('click',()=>this.saveGuestFromModal());
     this.guestModalCancel.addEventListener('click',()=>this.closeGuestModal());
@@ -467,15 +471,38 @@ class SeatingPlanner{
     const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`seating-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href);
   }
   loadArrangement(){
-    const input=document.createElement('input'); input.type='file'; input.accept='.json';
-    input.onchange=(e)=>{ const f=e.target.files?.[0]; if(!f) return; const r=new FileReader(); r.onload=ev=>{
-      try{ const d=JSON.parse(ev.target.result);
-        this.guests=d.guests||[]; this.tables=(d.tables||[]).map(t=>({name:t.name||t.name===""?t.name:`Mesa ${t.number||''}`,...t})); this.defaultCap=d.defaultCap||DEFAULT_CAPACITY;
-        this.rebuildGroupPills(); this.refresh();
+    if(!this.jsonInput) return;
+    this.jsonInput.value='';
+    this.jsonInput.click();
+  }
+
+  handleJsonInput(evt){
+    const input=evt.target;
+    const file=input.files?.[0];
+    if(!file){ input.value=''; return; }
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      try{
+        const raw=ev.target?.result;
+        const data=typeof raw==='string'?raw:String(raw);
+        const d=JSON.parse(data);
+        this.guests=d.guests||[];
+        this.tables=(d.tables||[]).map(t=>({name:t.name||t.name===""?t.name:`Mesa ${t.number||''}`,...t}));
+        this.defaultCap=d.defaultCap||DEFAULT_CAPACITY;
+        this.rebuildGroupPills();
+        this.refresh();
         Dialog.alert('¡Arreglo cargado!');
-      }catch(err){ Dialog.alert('Archivo inválido: '+err.message); }
-    }; r.readAsText(f); };
-    input.click();
+      }catch(err){
+        Dialog.alert('Archivo inválido: '+err.message);
+      }finally{
+        input.value='';
+      }
+    };
+    reader.onerror=()=>{
+      Dialog.alert('No se pudo leer el archivo.');
+      input.value='';
+    };
+    reader.readAsText(file);
   }
 
   // --- Export CSV asignaciones ---
